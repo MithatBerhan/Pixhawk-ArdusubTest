@@ -1,11 +1,11 @@
+import sys
 from pymavlink import mavutil
 
-master = mavutil.mavlink_connection( # aracin baglantisi
+master = mavutil.mavlink_connection( # Pixhawk bağlantısı
             '/dev/ttyACM0',
             baud=115200)
 
-#master = "mavutil.mavlink_connection('udpin:192.168.2.2:14550')" #eğer bilgisayardan konttrol edilecekse
-def set_rc_channel_pwm(id, pwm=1500):
+def set_rc_channel_pwm(id, pwm=1500): #çift yönlü motor için 0 durumunda PWM=1500
 
     if id < 1:
         print("Channel does not exist.")
@@ -19,22 +19,41 @@ def set_rc_channel_pwm(id, pwm=1500):
             master.target_system,
             master.target_component,
             *rc_channel_values)
+	
+#Pixhawk'ın motorları çalıştırabilmesi için Arm edilir.
+	    
+master.mav.command_long_send( 
+    master.target_system,
+    master.target_component,
+    mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+    0,
+    1, 0, 0, 0, 0, 0, 0) 
 
-
+#Motor düzeni Vectored ROV
+    
 def ileri():
-    set_rc_channel_pwm(5, 1650) # ileri git    
+    set_rc_channel_pwm(1, 1650)
+    set_rc_channel_pwm(2, 1650)    
 def geri():
-    set_rc_channel_pwm(5, 1400) # geri git
+    set_rc_channel_pwm(2, 1400)
+    set_rc_channel_pwm(4, 1450)
 def sol():
-    set_rc_channel_pwm(6, 1400)
-def sag():
-    set_rc_channel_pwm(6, 1600)
-def alcal():
-    set_rc_channel_pwm(3, 1450)
-def yuksel():
-    set_rc_channel_pwm(3, 1510)
-def don():
+    set_rc_channel_pwm(2, 1600)
     set_rc_channel_pwm(4, 1400)
+def sag():
+    set_rc_channel_pwm(1, 1600)
+    set_rc_channel_pwm(3, 1400)
+def alcal():
+    set_rc_channel_pwm(5, 1550)
+    set_rc_channel_pwm(6, 1350)
+def yuksel():
+    set_rc_channel_pwm(5, 1350)
+    set_rc_channel_pwm(6, 1550)
+def don():
+    set_rc_channel_pwm(1, 1400)
+    set_rc_channel_pwm(2, 1400)
+    set_rc_channel_pwm(3, 1600)
+    set_rc_channel_pwm(4, 1600)
 
 git = 0
 while(True):
@@ -43,11 +62,10 @@ while(True):
 		ileri()
 		git +=1
 		print(git)
-	elif(4499 < git < 6000 ):
+	elif(4501 < git < 6000 ):
 		sol()
 		git +=1
 		print(git)
-    else:
+
+else:
     	alcal()
-
-
